@@ -12,12 +12,14 @@ const OAUTH_SCOPES = [
   "pages_read_engagement",
   "pages_show_list",
   "business_management",
+  "instagram_manage_comments",
+  "instagram_manage_insights"
 ].join(",");
 
 const getOAuthLoginUrl = (redirectUri) => {
   return (
     `https://www.facebook.com/v24.0/dialog/oauth` +
-    `&client_id=${APP_ID}` +
+    `?client_id=${APP_ID}` +
     `&redirect_uri=${redirectUri}` +
     `&response_type=code` +
     `&scope=${OAUTH_SCOPES}`

@@ -50,35 +50,4 @@ router.get("/callback", async (req, res) => {
   }
 });
 
-router.post("/post", async (req, res) => {
-  const { pageId, pageToken, imageUrl, caption } = req.body;
-
-  if (!pageId || !pageToken || !imageUrl) {
-    return res.status(400).json({
-      error: "Missing required fields: pageId, pageToken, imageUrl",
-    });
-  }
-
-  try {
-    console.log("Starting Instagram feed post...");
-    const mediaId = await postToInstagramFeed(
-      pageId,
-      pageToken,
-      imageUrl,
-      caption || ""
-    );
-
-    res.json({
-      success: true,
-      mediaId,
-      message: "Successfully posted to Instagram feed!",
-    });
-  } catch (error) {
-    console.error(`Error posting to feed: ${error.response?.data || error.message}`);
-    res.status(500).json({
-      error: error.response?.data || error.message,
-    });
-  }
-});
-
 export default router;

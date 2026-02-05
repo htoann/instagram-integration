@@ -50,24 +50,4 @@ router.get("/callback", async (req, res) => {
   }
 });
 
-router.post("/send", async (req, res) => {
-  const { pageId, pageToken, recipientId, text } = req.body;
-  try {
-    const sendRes = await axios.post(
-      `https://graph.facebook.com/v24.0/${pageId}/messages`,
-      {
-        recipient: { id: recipientId },
-        message: { text },
-      },
-      {
-        params: { access_token: pageToken },
-      }
-    );
-    res.json({ success: true, data: sendRes.data });
-  } catch (error) {
-    console.error(`Error sending message: ${error.response?.data || error.message}`);
-    res.status(500).json({ success: false, error: error.response?.data || error.message });
-  }
-});
-
 export default router;

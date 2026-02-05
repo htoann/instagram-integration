@@ -104,30 +104,4 @@ router.get("/callback", async (req, res) => {
   }
 });
 
-router.post("/post", async (req, res) => {
-  const { pageId, pageToken, imageUrl } = req.body;
-
-  if (!pageId || !pageToken || !imageUrl) {
-    return res.status(400).json({
-      error: "Missing required fields: pageId, pageToken, imageUrl",
-    });
-  }
-
-  try {
-    console.log("Starting Instagram Story post...");
-    const storyId = await postToInstagramStory(pageId, pageToken, imageUrl);
-
-    res.json({
-      success: true,
-      storyId,
-      message: "Successfully posted to Instagram Story!",
-    });
-  } catch (error) {
-    console.error(`Error posting story: ${error.response?.data || error.message}`);
-    res.status(500).json({
-      error: error.response?.data || error.message,
-    });
-  }
-});
-
 export default router;

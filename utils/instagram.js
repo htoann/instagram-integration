@@ -137,5 +137,90 @@ const postToInstagramFeed = async (pageId, pageToken, imageUrl, caption) => {
   }
 };
 
-export { createMediaContainer, getInstagramAccountId, getRecipientId, postToInstagramFeed, publishMedia };
+const getInstagramPosts = async (igAccountId, pageToken) => {
+  try {
+    const response = await axios.get(
+      `https://graph.facebook.com/v24.0/${igAccountId}/media`,
+      {
+        params: {
+          fields: "id,caption,media_type,media_url,timestamp,permalink,like_count,comments_count",
+          access_token: pageToken,
+        },
+      }
+    );
+
+    if (!response.data.data || response.data.data.length === 0) {
+      throw new Error("No Instagram posts found.");
+    }
+
+    console.log(`Found ${response.data.data.length} posts`);
+    return response.data.data;
+  } catch (error) {
+    console.error(`Error getting Instagram posts: ${error.response?.data || error.message}`);
+    throw error;
+  }
+};
+
+const getPostEngagement = async (mediaId, pageToken) => {
+  try {
+    const response = await axios.get(
+      `https://graph.facebook.com/v24.0/${mediaId}`,
+      {
+        params: {
+          fields: "id,like_count,comments_count,media_type,caption,permalink,timestamp",
+          access_token: pageToken,
+        },
+      }
+    );
+
+    console.log(`Post ${mediaId} engagement: ${response.data.like_count} likes, ${response.data.comments_count} comments`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error getting post engagement: ${error.response?.data || error.message}`);
+    throw error;
+  }
+};
+
+const likeInstagramPost = async (mediaId, pageToken) => {
+  try {
+    const response = await axios.post(
+      `https://graph.facebook.com/v24.0/${mediaId}/likes`,
+      null,
+      {
+        params: {
+          access_token: pageToken,
+        },
+      }
+    );
+
+    console.log(`Post ${mediaId} liked successfully`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error liking post: ${error.response?.data || error.message}`);
+    throw error;
+  }
+};
+
+const commentOnInstagramPost = async (mediaId, commentText, pageToken) => {
+  try {
+    const response = await axios.post(
+      `https://graph.facebook.com/v24.0/${mediaId}/comments`,
+      null,
+      {
+        params: {
+          message: commentText,
+          access_token: pageToken,
+        },
+      }
+    );
+
+    console.log(`Comment posted on ${mediaId}: ${commentText}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error commenting on post: ${error.response?.data || error.message}`);
+    throw error;
+  }
+};
+
+export { commentOnInstagramPost, createMediaContainer, getInstagramAccountId, getInstagramPosts, getPostEngagement, getRecipientId, likeInstagramPost, postToInstagramFeed, publishMedia };
 
