@@ -22,8 +22,6 @@ router.get("/callback", async (req, res) => {
 
     const conversations = await getConversations(userId, accessToken);
 
-    console.log("conversations ", JSON.stringify(conversations, null, 2));
-
     if (!conversations || conversations.length === 0) {
       return res.json({
         success: false,
@@ -35,17 +33,8 @@ router.get("/callback", async (req, res) => {
     const firstConversation = conversations[0];
     const participants = firstConversation.participants?.data || [];
 
-    console.log("Business account username:", username);
-
     // Find the participant that is not the business account (by username)
     const recipient = participants.find(p => p.username !== username);
-
-    if (!recipient) {
-      return res.json({
-        success: false,
-        message: "Could not find recipient in conversation."
-      });
-    }
 
     console.log("Recipient:", recipient.username, "IGID:", recipient.id);
 

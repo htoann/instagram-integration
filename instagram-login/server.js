@@ -32,6 +32,7 @@ const httpsOptions = {
 
 https.createServer(httpsOptions, app).listen(PORT, () => {
   console.log(`Server running on https://localhost:${PORT}`);
+  console.log(`Webhook on https://localhost:${PORT}/webhook`);
   console.log(`Feed posting: https://localhost:${PORT}/feed/login`);
   console.log(`Send message: https://localhost:${PORT}/message/login`);
   console.log(`Post story: https://localhost:${PORT}/story/login`);
