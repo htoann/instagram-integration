@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json());
 
 const {
-  PORT = 3000,
+  PORT,
   APP_ID,
   APP_SECRET,
   REDIRECT_URI,
@@ -14,8 +14,6 @@ const {
 } = process.env;
 
 const OAUTH_SCOPES = [
-  "pages_show_list",
-  "pages_messaging",
   "instagram_basic",
   "instagram_manage_messages",
   "business_management",
@@ -72,61 +70,6 @@ async function getRecipientId(pageId, pageToken) {
   } catch (error) {
     console.error(`Error in getRecipientId: ${error.message}`);
     throw error;
-  }
-}
-
-// Handles the OAuth callback and sends an Instagram message.
-async function handleCallback(req, res) {
-  const { code } = req.query;
-
-  try {
-    console.log("Exchanging code for user token");
-    const tokenRes = await axios.get(
-      "https://graph.facebook.com/v24.0/oauth/access_token",
-      {
-        params: {
-          client_id: APP_ID,
-          client_secret: APP_SECRET,
-          redirect_uri: REDIRECT_URI,
-          code,
-        },
-      }
-    );
-
-    const userToken = tokenRes.data.access_token;
-
-    console.log("Getting page accounts");
-    const pagesRes = await axios.get(
-      "https://graph.facebook.com/v24.0/me/accounts",
-      { params: { access_token: userToken } }
-    );
-
-    const page = pagesRes.data.data[0];
-    const pageId = page.id;
-    const pageToken = page.access_token;
-    console.log(`PAGE_ID: ${pageId}`);
-
-    console.log("Getting recipient ID");
-    const recipientId = await getRecipientId(pageId, pageToken);
-    console.log(`RECIPIENT_ID: ${recipientId}`);
-
-    // Send a message to the user via Instagram
-    console.log(`Sending message to ${pageId}/messages with recipient ${recipientId}`);
-    const sendRes = await axios.post(
-      `https://graph.facebook.com/v24.0/${pageId}/messages`,
-      {
-        recipient: { id: recipientId },
-        message: { text: "Hello from Graph API 👋" },
-      },
-      {
-        params: { access_token: pageToken },
-      }
-    );
-    console.log("Message sent successfully:", sendRes.data);
-    res.send("Message sent successfully");
-  } catch (error) {
-    console.error(`Error in callback: ${error.response?.data || error.message}`);
-    res.status(500).send(error.response?.data || error.message);
   }
 }
 
@@ -193,9 +136,61 @@ app.post("/webhook", (req, res) => {
 // --------------------------------
 // Step 2: callback → send message
 // --------------------------------
-app.get("/callback", handleCallback);
+app.get("/callback", async (req, res) => {
+  const { code } = req.query;
+
+  try {
+    console.log("Exchanging code for user token");
+    const tokenRes = await axios.get(
+      "https://graph.facebook.com/v24.0/oauth/access_token",
+      {
+        params: {
+          client_id: APP_ID,
+          client_secret: APP_SECRET,
+          redirect_uri: REDIRECT_URI,
+          code,
+        },
+      }
+    );
+
+    const userToken = tokenRes.data.access_token;
+
+    console.log("Getting page accounts");
+    const pagesRes = await axios.get(
+      "https://graph.facebook.com/v24.0/me/accounts",
+      { params: { access_token: userToken } }
+    );
+
+    const page = pagesRes.data.data[0];
+    const pageId = page.id;
+    const pageToken = page.access_token;
+    console.log(`PAGE_ID: ${pageId}`);
+
+    console.log("Getting recipient ID");
+    const recipientId = await getRecipientId(pageId, pageToken);
+    console.log(`RECIPIENT_ID: ${recipientId}`);
+
+    // Send a message to the user via Instagram
+    console.log(`Sending message to ${pageId}/messages with recipient ${recipientId}`);
+    const sendRes = await axios.post(
+      `https://graph.facebook.com/v24.0/${pageId}/messages`,
+      {
+        recipient: { id: recipientId },
+        message: { text: "Hello from Graph API 👋" },
+      },
+      {
+        params: { access_token: pageToken },
+      }
+    );
+    console.log("Message sent successfully:", sendRes.data);
+    res.send("Message sent successfully");
+  } catch (error) {
+    console.error(`Error in callback: ${error.response?.data || error.message}`);
+    res.status(500).send(error.response?.data || error.message);
+  }
+});
 
 // --------------------------------
 app.listen(PORT, () => {
-  console.log(`👉 Open http://localhost:${PORT}/login`);
+  console.log(`Open http://localhost:${PORT}/login`);
 });
