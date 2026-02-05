@@ -1,4 +1,7 @@
-const axios = require("axios");
+import axios from "axios";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const { APP_ID, APP_SECRET } = process.env;
 
@@ -11,23 +14,17 @@ const OAUTH_SCOPES = [
   "business_management",
 ].join(",");
 
-/**
- * Generate OAuth login URL
- */
-function getOAuthLoginUrl(redirectUri) {
+const getOAuthLoginUrl = (redirectUri) => {
   return (
     `https://www.facebook.com/v24.0/dialog/oauth` +
-    `?client_id=${APP_ID}` +
+    `&client_id=${APP_ID}` +
     `&redirect_uri=${redirectUri}` +
     `&response_type=code` +
     `&scope=${OAUTH_SCOPES}`
   );
-}
+};
 
-/**
- * Exchange authorization code for user access token
- */
-async function exchangeCodeForToken(code, redirectUri) {
+const exchangeCodeForToken = async (code, redirectUri) => {
   console.log("Exchanging code for user token");
   const tokenRes = await axios.get(
     "https://graph.facebook.com/v24.0/oauth/access_token",
@@ -42,12 +39,9 @@ async function exchangeCodeForToken(code, redirectUri) {
   );
 
   return tokenRes.data.access_token;
-}
+};
 
-/**
- * Get page accounts and tokens
- */
-async function getPageAccounts(userToken) {
+const getPageAccounts = async (userToken) => {
   console.log("Getting page accounts");
   const pagesRes = await axios.get(
     "https://graph.facebook.com/v24.0/me/accounts",
@@ -62,21 +56,17 @@ async function getPageAccounts(userToken) {
     pageName: page.name,
     pageToken: page.access_token,
   };
-}
+};
 
-/**
- * Complete OAuth flow and return page credentials
- */
-async function completeOAuthFlow(code, redirectUri) {
+const completeOAuthFlow = async (code, redirectUri) => {
   const userToken = await exchangeCodeForToken(code, redirectUri);
   const pageData = await getPageAccounts(userToken);
-  return pageData;
-}
 
-module.exports = {
-  OAUTH_SCOPES,
-  getOAuthLoginUrl,
-  exchangeCodeForToken,
-  getPageAccounts,
-  completeOAuthFlow,
+  console.log('✅ Token received');
+  return pageData;
 };
+
+export {
+  completeOAuthFlow, exchangeCodeForToken, getOAuthLoginUrl, getPageAccounts, OAUTH_SCOPES
+};
+

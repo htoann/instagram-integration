@@ -1,4 +1,7 @@
-const express = require("express");
+import dotenv from "dotenv";
+import express from "express";
+
+dotenv.config();
 
 const router = express.Router();
 
@@ -22,7 +25,7 @@ router.get("/", (req, res) => {
 router.post("/", (req, res) => {
   const body = req.body;
 
-  console.log("📩 Incoming:");
+  console.log("Incoming:");
   console.log(JSON.stringify(body, null, 2));
 
   if (body.object !== "instagram") {
@@ -35,8 +38,8 @@ router.post("/", (req, res) => {
       const text = event.message?.text;
 
       if (text) {
-        console.log(`👤 User: ${senderId}`);
-        console.log(`💬 Message: ${text}`);
+        console.log(`User: ${senderId}`);
+        console.log(`Message: ${text}`);
       }
     });
   });
@@ -44,4 +47,4 @@ router.post("/", (req, res) => {
   res.sendStatus(200);
 });
 
-module.exports = router;
+export default router;
