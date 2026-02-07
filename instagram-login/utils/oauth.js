@@ -65,8 +65,9 @@ const exchangeForLongLivedToken = async (shortLivedToken) => {
 
 const getInstagramUserProfile = async (userId, accessToken) => {
   console.log("Getting Instagram user profile");
+  console.log("User ID:", userId);
   const response = await axios.get(
-    `https://graph.instagram.com/${userId}`,
+    `https://graph.instagram.com/me`,
     {
       params: {
         fields: 'id,username,account_type,media_count',
@@ -76,6 +77,7 @@ const getInstagramUserProfile = async (userId, accessToken) => {
   );
 
   console.log(`Instagram User: ${response.data.username} (${response.data.account_type})`);
+  console.log("Full profile data:", response.data);
   return response.data;
 };
 
@@ -86,7 +88,7 @@ const completeOAuthFlow = async (code, redirectUri) => {
 
   console.log('✅ Token received');
   return {
-    userId,
+    userId: userProfile.id,
     username: userProfile.username,
     accessToken,
     accountType: userProfile.account_type,
