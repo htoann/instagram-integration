@@ -150,24 +150,35 @@ const postToInstagramStory = async (userId, accessToken, imageUrl) => {
 };
 
 const sendInstagramMessage = async (userId, recipientId, messageText, accessToken) => {
-  try {
-    const response = await axios.post(
-      `https://graph.instagram.com/${userId}/messages`,
-      {
-        recipient: { id: recipientId },
-        message: { text: messageText },
-      },
-      {
-        params: { access_token: accessToken },
-      }
-    );
+  const payload = {
+    recipient: { id: recipientId },
+    message: { text: messageText },
+    messaging_product: "instagram",
+  };
 
-    console.log(`Message sent to recipient ${recipientId}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error sending message: ${error.response?.data || error.message}`);
-    throw error;
+  const endpointAttempts = [
+    `https://graph.facebook.com/v23.0/me/messages`,
+    `https://graph.facebook.com/v23.0/${userId}/messages`,
+    `https://graph.instagram.com/${userId}/messages`,
+  ];
+
+  let lastError = null;
+
+  for (const endpoint of endpointAttempts) {
+    try {
+      const response = await axios.post(endpoint, payload, {
+        params: { access_token: accessToken },
+      });
+
+      console.log(`Message sent to recipient ${recipientId} via ${endpoint}`);
+      return response.data;
+    } catch (error) {
+      lastError = error;
+      console.error(`Error sending message via ${endpoint}: ${error.response?.data || error.message}`);
+    }
   }
+
+  throw lastError;
 };
 
 const getConversations = async (userId, accessToken) => {

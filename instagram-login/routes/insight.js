@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express from "express";
 import { commentOnInstagramPost, getInstagramPosts } from "../utils/instagram.js";
 import { completeOAuthFlow, getOAuthLoginUrl } from "../utils/oauth.js";
+import { sendServerError } from "../utils/routeHelpers.js";
 
 dotenv.config();
 
@@ -61,10 +62,7 @@ router.get("/callback", async (req, res) => {
     });
   } catch (error) {
     console.error(`Error in insight callback: ${error.response?.data || error.message}`);
-    res.status(500).json({
-      success: false,
-      error: error.response?.data || error.message,
-    });
+    sendServerError(res, error);
   }
 });
 

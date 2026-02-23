@@ -8,11 +8,13 @@ import insightRoutes from "./routes/insight.js";
 import messageRoutes from "./routes/message.js";
 import storyRoutes from "./routes/story.js";
 import webhookRoutes from "./routes/webhook.js";
+import { requireAuth } from "./utils/routeHelpers.js";
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(requireAuth);
 
 const { PORT } = process.env;
 
