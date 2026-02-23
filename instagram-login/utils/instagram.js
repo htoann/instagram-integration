@@ -190,8 +190,29 @@ const getConversations = async (userId, accessToken) => {
   }
 };
 
+const getConversationMessages = async (conversationId, accessToken, limit = 25) => {
+  try {
+    const { data } = await axios.get(
+      `https://graph.instagram.com/${conversationId}/messages`,
+      {
+        params: {
+          fields: "id,message,created_time,from,to",
+          limit,
+          access_token: accessToken,
+        },
+      }
+    );
+
+    return data.data || [];
+  } catch (error) {
+    console.error(error.response?.data || error.message);
+    throw error;
+  }
+};
+
 export {
   commentOnInstagramPost,
+  getConversationMessages,
   getConversations,
   getInstagramPosts,
   getPostEngagement,

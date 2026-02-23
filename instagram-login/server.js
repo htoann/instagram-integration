@@ -1,3 +1,4 @@
+import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import fs from "fs";
@@ -14,6 +15,16 @@ const app = express();
 app.use(express.json());
 
 const { PORT } = process.env;
+
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
+app.options("/{*any}", cors());
 
 app.get("/", (req, res) => {
   res.send("Instagram Integration Server");

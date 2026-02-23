@@ -13,13 +13,16 @@ const OAUTH_SCOPES = [
   "instagram_business_manage_insights"
 ].join(",");
 
-const getOAuthLoginUrl = (redirectUri) => {
+const getOAuthLoginUrl = (redirectUri, state) => {
+  const stateParam = state ? `&state=${encodeURIComponent(state)}` : "";
+
   return (
     `https://www.instagram.com/oauth/authorize` +
     `?client_id=${APP_ID}` +
     `&redirect_uri=${redirectUri}` +
     `&response_type=code` +
-    `&scope=${OAUTH_SCOPES}`
+    `&scope=${OAUTH_SCOPES}` +
+    stateParam
   );
 };
 

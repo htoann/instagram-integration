@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Post Feed</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        max-width: 760px;
+      }
+      label {
+        display: block;
+        margin-top: 12px;
+        font-weight: 600;
+      }
+      input,
+      button {
+        width: 100%;
+        padding: 8px;
+        margin-top: 6px;
+      }
+      pre {
+        background: #111;
+        color: #eaeaea;
+        padding: 12px;
+        overflow: auto;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Post Feed Tester</h2>
+
+    <button id="loginBtn" type="button">Login with Instagram</button>
+
+    <div id="postSection">
+      <label for="imageUrl">Image URL</label>
+      <input
+        id="imageUrl"
+        value="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1080&h=1080&fit=crop"
+        placeholder="https://example.com/image.jpg"
+      />
+
+      <label for="caption">Caption</label>
+      <input id="caption" placeholder="Type caption text..." />
+
+      <button id="sendBtn" type="button">Send POST</button>
+
+      <h3>Response</h3>
+      <pre id="result">No request sent yet.</pre>
+    </div>
+
+    <script>
+      const CONFIG = {
+        endpoint: "https://localhost:3000/feed/post",
+        loginEndpoint: "https://localhost:3000/feed/login?mode=token",
+        tokenKey: "instagramAccessToken",
+      };
+
+      const $ = (id) => document.getElementById(id);
+      const ui = {
+        imageUrl: $("imageUrl"),
+        caption: $("caption"),
+        result: $("result"),
+        sendBtn: $("sendBtn"),
+        loginBtn: $("loginBtn"),
+        postSection: $("postSection"),
+      };
+
+      const trustedOrigin = new URL(CONFIG.endpoint).origin;
+      let pendingLogin = null;
+
+      const getToken = () => localStorage.getItem(CONFIG.tokenKey);
+      const setToken = (token) => localStorage.setItem(CONFIG.tokenKey, token);
+      const clearToken = () => localStorage.removeItem(CONFIG.tokenKey);
+      const setResult = (text) => (ui.result.textContent = text);
+      const toErrorMessage = (error) =>
+        error?.message || error || "Unknown error";
+      const parseJson = (text) => {
+        try {
+          return JSON.parse(text);
+        } catch {
+          return text;
+        }
+      };
+
+      const renderAuthState = () => {
+        const loggedIn = Boolean(getToken());
+        ui.loginBtn.style.display = loggedIn ? "none" : "";
+        ui.postSection.style.display = loggedIn ? "" : "none";
+      };
+
+      const completePendingLogin = (handler) => {
+        if (!pendingLogin) return;
+        const current = pendingLogin;
+        pendingLogin = null;
+        clearInterval(current.closeTimer);
+        handler(current);
+      };
+
+      const openLoginPopup = () =>
+        new Promise((resolve, reject) => {
+          const popup = window.open(
+            CONFIG.loginEndpoint,
+            "instagramLoginPopup",
+            "width=520,height=720",
+          );
+
+          if (!popup) {
+            reject(
+              new Error("Popup blocked. Please allow popups and try again."),
+            );
+            return;
+          }
+
+          const closeTimer = setInterval(() => {
+            if (!popup.closed) return;
+            completePendingLogin(({ reject: rejectLogin }) =>
+              rejectLogin(
+                new Error(
+                  "Login popup was closed before authentication completed.",
+                ),
+              ),
+            );
+          }, 400);
+
+          pendingLogin = { resolve, reject, closeTimer };
+        });
+
+      const postFeed = async (token, imageUrl, caption) => {
+        const res = await fetch(CONFIG.endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ imageUrl, caption }),
+        });
+
+        const text = await res.text();
+        const data = parseJson(text);
+        return {
+          res,
+          data,
+          isTokenExpired: res.status === 401 || data?.code === "TOKEN_EXPIRED",
+        };
+      };
+
+      window.addEventListener("message", (event) => {
+        if (event.origin !== trustedOrigin) return;
+
+        const { type, accessToken, error } = event.data || {};
+        if (type === "instagram_oauth_success" && accessToken) {
+          setToken(accessToken);
+          renderAuthState();
+          completePendingLogin(({ resolve }) => resolve(accessToken));
+          return;
+        }
+
+        if (type === "instagram_oauth_error") {
+          const message = toErrorMessage(error);
+          setResult("Login failed: " + message);
+          completePendingLogin(({ reject }) => reject(new Error(message)));
+        }
+      });
+
+      ui.loginBtn.addEventListener("click", async () => {
+        try {
+          await openLoginPopup();
+          setResult("Login successful.");
+        } catch (error) {
+          setResult("Login failed: " + toErrorMessage(error));
+        }
+      });
+
+      ui.sendBtn.addEventListener("click", async () => {
+        const imageUrl = ui.imageUrl.value.trim();
+        const caption = ui.caption.value.trim();
+        let token = getToken();
+
+        if (!imageUrl) return setResult("Image URL is required.");
+        if (!token)
+          return setResult(
+            "Please login first so access token can be saved to localStorage.",
+          );
+
+        setResult("Sending request...");
+
+        try {
+          for (let attempt = 0; attempt < 2; attempt += 1) {
+            const { res, data, isTokenExpired } = await postFeed(
+              token,
+              imageUrl,
+              caption,
+            );
+
+            if (!isTokenExpired) {
+              setResult(
+                JSON.stringify(
+                  {
+                    ok: res.ok,
+                    status: res.status,
+                    statusText: res.statusText,
+                    data,
+                  },
+                  null,
+                  2,
+                ),
+              );
+              return;
+            }
+
+            clearToken();
+            renderAuthState();
+            if (attempt === 1) {
+              setResult(
+                "Access token expired or invalid. Please login again, then retry.",
+              );
+              return;
+            }
+
+            setResult("Access token expired. Re-authenticating...");
+            try {
+              token = await openLoginPopup();
+              setResult("Login successful. Retrying request...");
+            } catch (error) {
+              setResult("Re-login failed: " + toErrorMessage(error));
+              return;
+            }
+          }
+        } catch (error) {
+          setResult("Request failed: " + toErrorMessage(error));
+        }
+      });
+
+      renderAuthState();
+    </script>
+  </body>
+</html>
