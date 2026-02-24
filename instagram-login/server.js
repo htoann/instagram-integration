@@ -48,6 +48,7 @@ https.createServer(httpsOptions, app).listen(PORT, () => {
   console.log(`Webhook on https://localhost:${PORT}/webhook`);
   console.log(`Feed posting: https://localhost:${PORT}/feed/login`);
   console.log(`Send message: https://localhost:${PORT}/message/login`);
-  console.log(`Post story: https://localhost:${PORT}/story/login`);
-  console.log(`Insight and comment: https://localhost:${PORT}/insight/login`);
+  console.log(`Story login: https://localhost:${PORT}/story/login`);
+  console.log(`Post story: https://localhost:${PORT}/story/post`);
+  console.log(`Get insights: https://localhost:${PORT}/insight/insights`);
 });

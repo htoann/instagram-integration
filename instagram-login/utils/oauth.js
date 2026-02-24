@@ -13,7 +13,7 @@ const OAUTH_SCOPES = [
   "instagram_business_manage_insights"
 ].join(",");
 
-const getOAuthLoginUrl = (redirectUri, state) => {
+const getOAuthLoginUrl = (redirectUri, state = "token") => {
   const stateParam = state ? `&state=${encodeURIComponent(state)}` : "";
 
   return (

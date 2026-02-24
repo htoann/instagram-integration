@@ -1,8 +1,11 @@
 import dotenv from "dotenv";
 import express from "express";
 import { postToInstagramStory } from "../utils/instagram.js";
-import { completeOAuthFlow, getOAuthLoginUrl } from "../utils/oauth.js";
-import { sendServerError } from "../utils/routeHelpers.js";
+import { getOAuthLoginUrl } from "../utils/oauth.js";
+import {
+  getInstagramMe,
+  handleApiError
+} from "../utils/routeHelpers.js";
 
 dotenv.config();
 
@@ -15,18 +18,19 @@ router.get("/login", (req, res) => {
   res.redirect(url);
 });
 
-router.get("/callback", async (req, res) => {
-  const { code } = req.query;
+router.post("/post", async (req, res) => {
+  const accessToken = req.accessToken;
+  const { imageUrl } = req.body || {};
+
+  if (!imageUrl) {
+    return res.status(400).json({
+      success: false,
+      error: "imageUrl is required"
+    });
+  }
 
   try {
-    const { userId, username, accessToken } = await completeOAuthFlow(
-      code,
-      REDIRECT_URI_STORY
-    );
-
-    const imageUrl = "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1080&h=1920&fit=crop";
-
-    console.log("Posting to Instagram Story...");
+    const { id: userId, username } = await getInstagramMe(accessToken);
     const storyId = await postToInstagramStory(userId, accessToken, imageUrl);
 
     res.json({
@@ -34,12 +38,11 @@ router.get("/callback", async (req, res) => {
       userId,
       username,
       storyId,
-      message: "Successfully posted to Instagram Story!",
       imageUrl
     });
   } catch (error) {
-    console.error(`Error in story callback: ${error.response?.data || error.message}`);
-    sendServerError(res, error);
+    console.error(`Error posting story via /story/post: ${error.response?.data || error.message}`);
+    handleApiError(res, error);
   }
 });
 

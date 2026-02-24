@@ -92,7 +92,7 @@
 
     <script>
       const CONFIG = {
-        loginEndpoint: "https://localhost:3000/message/login?mode=token",
+        loginEndpoint: "https://localhost:3000/message/login",
         conversationsEndpoint: "https://localhost:3000/message/conversations",
         messagesEndpoint: (conversationId) =>
           `https://localhost:3000/message/messages/${encodeURIComponent(conversationId)}?limit=50`,

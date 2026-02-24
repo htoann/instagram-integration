@@ -1,8 +1,11 @@
 import dotenv from "dotenv";
 import express from "express";
-import { commentOnInstagramPost, getInstagramPosts } from "../utils/instagram.js";
-import { completeOAuthFlow, getOAuthLoginUrl } from "../utils/oauth.js";
-import { sendServerError } from "../utils/routeHelpers.js";
+import { getInstagramPosts } from "../utils/instagram.js";
+import { getOAuthLoginUrl } from "../utils/oauth.js";
+import {
+  getInstagramMe,
+  handleApiError
+} from "../utils/routeHelpers.js";
 
 dotenv.config();
 
@@ -15,54 +18,33 @@ router.get("/login", (req, res) => {
   res.redirect(url);
 });
 
-router.get("/callback", async (req, res) => {
-  const { code } = req.query;
+router.get("/insights", async (req, res) => {
+  const accessToken = req.accessToken;
 
   try {
-    const { userId, username, accessToken } = await completeOAuthFlow(
-      code,
-      REDIRECT_URI_INSIGHT
-    );
+    const { id: userId, username } = await getInstagramMe(accessToken);
 
     const posts = await getInstagramPosts(userId, accessToken);
-
-    const firstPost = posts[0];
-    console.log(`Retrieved first post: ${firstPost.id}`);
-
-    // Comment on the first post
-    const commentText = "Great post! 🔥";
-    const commentResult = await commentOnInstagramPost(firstPost.id, commentText, accessToken);
 
     res.json({
       success: true,
       userId,
       username,
-      retrievedPost: {
-        id: firstPost.id,
-        caption: firstPost.caption || "No caption",
-        media_type: firstPost.media_type,
-        timestamp: firstPost.timestamp,
-        permalink: firstPost.permalink,
-        like_count: firstPost.like_count || 0,
-        comments_count: firstPost.comments_count || 0,
-      },
-      comment: {
-        text: commentText,
-        id: commentResult.id,
-      },
+      totalPosts: posts.length,
       posts: posts.slice(0, 5).map(post => ({
         id: post.id,
         caption: post.caption || "No caption",
         media_type: post.media_type,
         timestamp: post.timestamp,
+        permalink: post.permalink,
         like_count: post.like_count || 0,
         comments_count: post.comments_count || 0,
       })),
-      message: "Successfully retrieved Instagram posts and commented on the first post!",
+      message: "Successfully retrieved Instagram post insights!",
     });
   } catch (error) {
-    console.error(`Error in insight callback: ${error.response?.data || error.message}`);
-    sendServerError(res, error);
+    console.error(`Error getting insights via /insight/insights: ${error.response?.data || error.message}`);
+    handleApiError(res, error);
   }
 });
 

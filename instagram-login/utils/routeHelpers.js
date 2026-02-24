@@ -90,7 +90,7 @@ const isPublicRoute = (req) => {
   if (method === "OPTIONS") return true;
   if (path === "/") return true;
   if (path === "/webhook") return true;
-  if (path.endsWith("/login") || path.endsWith("/callback")) return true;
+  if (path.endsWith("/login")) return true;
   if (path === "/message/stream") return true;
 
   return false;

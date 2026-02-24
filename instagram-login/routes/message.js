@@ -5,12 +5,11 @@ import {
   getConversations,
   sendInstagramMessage,
 } from "../utils/instagram.js";
-import { completeOAuthFlow, getOAuthLoginUrl } from "../utils/oauth.js";
+import { getOAuthLoginUrl } from "../utils/oauth.js";
 import { addStreamClient, publishToUser, removeStreamClient } from "../utils/realtime.js";
 import {
   getInstagramMe,
-  handleApiError,
-  sendOAuthPopup,
+  handleApiError
 } from "../utils/routeHelpers.js";
 
 dotenv.config();
@@ -20,50 +19,8 @@ const router = express.Router();
 const { REDIRECT_URI_MESSAGE } = process.env;
 
 router.get("/login", (req, res) => {
-  const mode = req.query.mode === "token" ? "token" : "";
-  const url = getOAuthLoginUrl(REDIRECT_URI_MESSAGE, mode);
+  const url = getOAuthLoginUrl(REDIRECT_URI_MESSAGE);
   res.redirect(url);
-});
-
-router.get("/callback", async (req, res) => {
-  const { code, state } = req.query;
-
-  try {
-    const { userId, username, accessToken } = await completeOAuthFlow(code, REDIRECT_URI_MESSAGE);
-
-    if (state === "token") {
-      return sendOAuthPopup(
-        res,
-        "instagram_oauth_success",
-        { accessToken, userId, username },
-        "Login successful. You can close this window."
-      );
-    }
-
-    res.json({
-      success: true,
-      userId,
-      username,
-      accessToken,
-      message: "Login successful. Use /message/conversations to list threads and /message/send with payload { conversationId, recipientId?, message }.",
-    });
-  } catch (error) {
-    console.error(`Error in message callback: ${error.response?.data || error.message}`);
-
-    if (state === "token") {
-      return sendOAuthPopup(
-        res,
-        "instagram_oauth_error",
-        { error: error.response?.data || error.message || "Unknown error" },
-        "Login failed. You can close this window."
-      );
-    }
-
-    res.status(500).json({
-      success: false,
-      error: error.response?.data || error.message,
-    });
-  }
 });
 
 router.get("/conversations", async (req, res) => {
