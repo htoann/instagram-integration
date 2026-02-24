@@ -66,6 +66,45 @@ const getInstagramPosts = async (userId, accessToken) => {
   }
 };
 
+const getInstagramAccountInsights = async (
+  userId,
+  accessToken,
+  {
+    metrics,
+    period = "day",
+    since,
+    until,
+  } = {}
+) => {
+  const metricList = Array.isArray(metrics)
+    ? metrics.map((item) => String(item || "").trim()).filter(Boolean)
+    : [];
+
+  if (!metricList.length) {
+    throw new Error("At least one insight metric is required.");
+  }
+
+  try {
+    const { data } = await axios.get(
+      `https://graph.facebook.com/${userId}/insights`,
+      {
+        params: {
+          metric: metricList.join(","),
+          period,
+          since,
+          until,
+          access_token: accessToken,
+        },
+      }
+    );
+
+    return data?.data || [];
+  } catch (error) {
+    console.error(`Error getting Instagram account insights: ${error.response?.data || error.message}`);
+    throw error;
+  }
+};
+
 const getPostEngagement = async (mediaId, accessToken) => {
   try {
     const response = await axios.get(
@@ -225,6 +264,7 @@ export {
   commentOnInstagramPost,
   getConversationMessages,
   getConversations,
+  getInstagramAccountInsights,
   getInstagramPosts,
   getPostEngagement,
   postToInstagramFeed,
