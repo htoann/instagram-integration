@@ -103,13 +103,6 @@ export function requireAuth(req, res, next) {
     return;
   }
 
-  const queryToken = String(req.query?.access_token || "").trim();
-  if (queryToken) {
-    req.accessToken = queryToken;
-    next();
-    return;
-  }
-
   const accessToken = requireBearerToken(req, res);
   if (!accessToken) {
     return;
