@@ -14,16 +14,18 @@ const OAUTH_SCOPES = [
 ].join(",");
 
 const getOAuthLoginUrl = (redirectUri, state = "token") => {
-  const stateParam = state ? `&state=${encodeURIComponent(state)}` : "";
+  const params = new URLSearchParams({
+    client_id: APP_ID,
+    redirect_uri: String(redirectUri || "").trim(),
+    response_type: "code",
+    scope: OAUTH_SCOPES,
+  });
 
-  return (
-    `https://www.instagram.com/oauth/authorize` +
-    `?client_id=${APP_ID}` +
-    `&redirect_uri=${redirectUri}` +
-    `&response_type=code` +
-    `&scope=${OAUTH_SCOPES}` +
-    stateParam
-  );
+  if (state) {
+    params.set("state", String(state));
+  }
+
+  return `https://www.instagram.com/oauth/authorize?${params.toString()}`;
 };
 
 const exchangeCodeForToken = async (code, redirectUri) => {
@@ -99,11 +101,10 @@ const completeOAuthFlow = async (code, redirectUri) => {
 };
 
 export {
-  completeOAuthFlow,
+  OAUTH_SCOPES, completeOAuthFlow,
   exchangeCodeForToken,
   exchangeForLongLivedToken,
   getInstagramUserProfile,
-  getOAuthLoginUrl,
-  OAUTH_SCOPES
+  getOAuthLoginUrl
 };
 

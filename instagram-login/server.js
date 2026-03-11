@@ -14,6 +14,7 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
+
 app.use(requireAuth);
 
 const { PORT } = process.env;
@@ -50,5 +51,5 @@ https.createServer(httpsOptions, app).listen(PORT, () => {
   console.log(`Send message: https://localhost:${PORT}/message/login`);
   console.log(`Story login: https://localhost:${PORT}/story/login`);
   console.log(`Post story: https://localhost:${PORT}/story/post`);
-  console.log(`Get insights: https://localhost:${PORT}/insight/insights`);
+  console.log(`Insight login: https://localhost:${PORT}/insight/login`);
 });

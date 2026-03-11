@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Realtime Chat Tester</title>
+    <link rel="stylesheet" href="ave_ntu_instagram_message.css" />
+  </head>
+  <body>
+    <button id="loginBtn" type="button">Login with Instagram</button>
+
+    <div id="chatSection" class="hidden">
+      <div class="container">
+        <div class="sidebar">
+          <div class="row">
+            <h3>Conversations</h3>
+          </div>
+          <div class="conversation-list-wrap">
+            <ul id="conversationList" class="conversation-list"></ul>
+            <div
+              id="conversationLoading"
+              class="loading-overlay hidden"
+              aria-hidden="true"
+            >
+              <div
+                class="fluent-spinner"
+                role="status"
+                aria-label="Loading conversations"
+              ></div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-area">
+          <div id="chatHeader" class="chat-header hidden">
+            <img id="headerAvatar" class="header-avatar" src="" alt="avatar" />
+            <span id="headerName" class="header-name"></span>
+          </div>
+          <div class="chatbox-wrap">
+            <div id="chatBox" class="empty">No messages yet.</div>
+            <div
+              id="chatLoading"
+              class="loading-overlay hidden"
+              aria-hidden="true"
+            >
+              <div
+                class="fluent-spinner"
+                role="status"
+                aria-label="Loading"
+              ></div>
+            </div>
+          </div>
+
+          <textarea id="messageInput" placeholder="Type message..."></textarea>
+          <button id="sendBtn" type="button">Send Message</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="ave_ntu_instagram_message.js"></script>
+  </body>
+</html>

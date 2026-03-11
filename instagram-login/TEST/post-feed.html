@@ -118,11 +118,7 @@
           const closeTimer = setInterval(() => {
             if (!popup.closed) return;
             completePendingLogin(({ reject: rejectLogin }) =>
-              rejectLogin(
-                new Error(
-                  "Login popup was closed before authentication completed.",
-                ),
-              ),
+              rejectLogin(new Error("Something went wrong.")),
             );
           }, 400);
 

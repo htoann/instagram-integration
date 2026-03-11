@@ -1,10 +1,11 @@
 import dotenv from "dotenv";
 import express from "express";
 import { postToInstagramFeed } from "../utils/instagram.js";
-import { getOAuthLoginUrl } from "../utils/oauth.js";
+import { completeOAuthFlow, getOAuthLoginUrl } from "../utils/oauth.js";
 import {
   getInstagramMe,
-  handleApiError
+  handleApiError,
+  sendOAuthPopup
 } from "../utils/routeHelpers.js";
 
 dotenv.config();
@@ -16,6 +17,31 @@ const { REDIRECT_URI_FEED } = process.env;
 router.get("/login", (req, res) => {
   const url = getOAuthLoginUrl(REDIRECT_URI_FEED);
   res.redirect(url);
+});
+
+router.get("/callback", async (req, res) => {
+  const { code } = req.query;
+
+  try {
+    const { userId, username, accessToken } = await completeOAuthFlow(
+      code,
+      REDIRECT_URI_FEED
+    );
+    return sendOAuthPopup(
+      res,
+      "instagram_oauth_success",
+      { accessToken, userId, username },
+      "Login successful. You can close this window."
+    );
+  } catch (error) {
+    console.error(`Error in feed callback: ${error.response?.data || error.message}`);
+    return sendOAuthPopup(
+      res,
+      "instagram_oauth_error",
+      { error: error.response?.data || error.message || "Unknown error" },
+      "Login failed. You can close this window."
+    );
+  }
 });
 
 router.post("/post", async (req, res) => {

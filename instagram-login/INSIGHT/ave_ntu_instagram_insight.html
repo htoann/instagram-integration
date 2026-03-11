@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Instagram Insight Tester</title>
+    <link rel="stylesheet" href="ave_ntu_instagram_insight.css" />
+  </head>
+  <body>
+    <!-- Auth + Fetch Controls -->
+    <div class="controls">
+      <button id="loginBtn" type="button">Login with Instagram</button>
+      <button id="logoutBtn" type="button" class="danger hidden">Logout</button>
+      <button id="fetchBtn" type="button" class="secondary" disabled>
+        Fetch Insights
+      </button>
+    </div>
+
+    <!-- Status -->
+    <div id="statusBar" class="status info hidden"></div>
+
+    <!-- Results container -->
+    <div id="results" class="hidden">
+      <!-- Account -->
+      <div class="card" id="accountCard"></div>
+
+      <!-- Summary -->
+      <div class="card" id="summaryCard">
+        <h3 style="margin-top: 0">Summary</h3>
+        <div class="summary-grid" id="summaryGrid"></div>
+      </div>
+
+      <!-- Tabbed content -->
+      <div class="card">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="posts">Ranked Posts</button>
+          <button class="tab-btn" data-tab="prospects">Prospects</button>
+          <button class="tab-btn" data-tab="raw">Raw JSON</button>
+        </div>
+
+        <!-- Posts Tab -->
+        <div id="tab-posts" class="tab-panel active">
+          <div class="scroll-wrap">
+            <table class="posts-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Type</th>
+                  <th>Caption</th>
+                  <th>Likes</th>
+                  <th>Comments</th>
+                  <th>Engagement</th>
+                  <th>Date</th>
+                  <th>Link</th>
+                </tr>
+              </thead>
+              <tbody id="postsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Prospects Tab -->
+        <div id="tab-prospects" class="tab-panel">
+          <div
+            id="prospectsContainer"
+            style="max-height: 600px; overflow-y: auto"
+          ></div>
+        </div>
+
+        <!-- Raw JSON Tab -->
+        <div id="tab-raw" class="tab-panel">
+          <pre id="rawJson">No data yet.</pre>
+        </div>
+      </div>
+    </div>
+
+    <script src="ave_ntu_instagram_insight.js"></script>
+  </body>
+</html>

@@ -5,11 +5,12 @@ import {
   getConversations,
   sendInstagramMessage,
 } from "../utils/instagram.js";
-import { getOAuthLoginUrl } from "../utils/oauth.js";
+import { completeOAuthFlow, getOAuthLoginUrl } from "../utils/oauth.js";
 import { addStreamClient, publishToUser, removeStreamClient } from "../utils/realtime.js";
 import {
   getInstagramMe,
-  handleApiError
+  handleApiError,
+  sendOAuthPopup
 } from "../utils/routeHelpers.js";
 
 dotenv.config();
@@ -21,6 +22,27 @@ const { REDIRECT_URI_MESSAGE } = process.env;
 router.get("/login", (req, res) => {
   const url = getOAuthLoginUrl(REDIRECT_URI_MESSAGE);
   res.redirect(url);
+});
+
+router.get("/callback", async (req, res) => {
+  const { code } = req.query;
+  try {
+    const { userId, username, accessToken } = await completeOAuthFlow(code, REDIRECT_URI_MESSAGE);
+    return sendOAuthPopup(
+      res,
+      "instagram_oauth_success",
+      { accessToken, userId, username },
+      "Login successful. You can close this window."
+    );
+  } catch (error) {
+    console.error(`Error in message callback: ${error.response?.data || error.message}`);
+    return sendOAuthPopup(
+      res,
+      "instagram_oauth_error",
+      { error: error.response?.data || error.message || "Unknown error" },
+      "Login failed. You can close this window."
+    );
+  }
 });
 
 router.get("/conversations", async (req, res) => {

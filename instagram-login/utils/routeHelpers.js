@@ -29,7 +29,7 @@ export const sendTokenExpired = (res, fallbackMessage) =>
 export const sendAuthHeaderMissing = (res) =>
   res.status(401).json({
     success: false,
-    error: "Missing or invalid Authorization header. Use Bearer <token>.",
+    error: "Missing access token. Use Authorization: Bearer <token> or ?access_token=<token>.",
   });
 
 export const sendServerError = (res, error) =>
@@ -89,8 +89,9 @@ const isPublicRoute = (req) => {
 
   if (method === "OPTIONS") return true;
   if (path === "/") return true;
+  if (path === "/insight") return true;
   if (path === "/webhook") return true;
-  if (path.endsWith("/login")) return true;
+  if (path.endsWith("/login") || path.endsWith("/callback")) return true;
   if (path === "/message/stream") return true;
 
   return false;
@@ -98,6 +99,13 @@ const isPublicRoute = (req) => {
 
 export function requireAuth(req, res, next) {
   if (isPublicRoute(req)) {
+    next();
+    return;
+  }
+
+  const queryToken = String(req.query?.access_token || "").trim();
+  if (queryToken) {
+    req.accessToken = queryToken;
     next();
     return;
   }
